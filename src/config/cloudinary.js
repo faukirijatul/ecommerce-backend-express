@@ -17,7 +17,12 @@ export const uploadImage = async (file, folder) => {
     {
       folder,
       transformation: [
-        { width: 500, height: 5000, crop: "lpad", background: "white" },
+        {
+          width: 500,
+          height: 500,
+          crop: "pad",
+          background: "white",
+        },
         { quality: "auto" },
         { fetch_format: "auto" },
       ],

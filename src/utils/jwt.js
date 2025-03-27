@@ -31,14 +31,12 @@ export const removeToken = (res) => {
     httpOnly: process.env.NODE_ENV === "production",
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    expires: new Date(0), // delete cookie
     path: "/",
   });
   res.clearCookie("refreshToken", {
     httpOnly: process.env.NODE_ENV === "production",
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    expires: new Date(0), // delete cookie
     path: "/",
   });
 };
