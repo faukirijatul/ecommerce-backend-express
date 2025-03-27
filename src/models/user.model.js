@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
     role: { type: String, default: "user" },
     cartData: { type: Array, default: [] },
   },
-  { timestamps: true, minimize: false }
+  { timestamps: true }
 );
 
 export default mongoose.model("User", userSchema);

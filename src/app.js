@@ -3,12 +3,14 @@ import "dotenv/config";
 import cors from "cors";
 import morgan from "morgan";
 import connectDb from "./config/mongodb.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
 connectDb();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(
   cors({
@@ -21,5 +23,12 @@ app.use(
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
+// routes
+import userRouter from "./routes/user.route.js";
+
+const apiVersion = "/api/v1";
+
+app.use(`${apiVersion}/users`, userRouter);
 
 export default app;
