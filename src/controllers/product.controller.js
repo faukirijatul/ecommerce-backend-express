@@ -1,8 +1,6 @@
 import Product from "../models/product.model.js";
 import { uploadImage, deleteImage } from "../config/cloudinary.js";
 
-// Add new product with multiple image by multer file
-
 export const addProduct = async (req, res) => {
   try {
     const { name, description, price, category, subCategory, sizes } = req.body;
@@ -14,13 +12,11 @@ export const addProduct = async (req, res) => {
       });
     }
 
-    const imageUploads = req.files
-      ? await Promise.all(
-          req.files.map(
-            async (file) => await uploadImage(file, "tokobaju/products")
-          )
-        )
-      : [];
+    const imageUploads = await Promise.all(
+      req.files.map(
+        async (file) => await uploadImage(file, "tokobaju/products")
+      )
+    );
 
     const images = imageUploads.map((upload) => ({
       public_id: upload.public_id,
@@ -36,12 +32,10 @@ export const addProduct = async (req, res) => {
       subCategory,
       sizes: JSON.parse(sizes),
     });
-
+    
     await product.save();
 
-    res
-      .status(201)
-      .json({ success: true, message: "Product added successfully", product });
+    res.status(201).json({ success: true, message: "Product added", product });
   } catch (error) {
     console.error(error);
 
@@ -80,12 +74,17 @@ export const getAllProducts = async (req, res) => {
     }
 
     if (category) {
-      query.category = category;
+      query.category = Array.isArray(category) 
+        ? { $in: category } 
+        : category;
     }
 
     if (subCategory) {
-      query.subCategory = subCategory;
+      query.subCategory = Array.isArray(subCategory) 
+        ? { $in: subCategory } 
+        : subCategory;
     }
+
 
     const validSortFields = ["price", "sold", "createdAt"];
     const sanitizedSortBy = validSortFields.includes(sortBy)
@@ -110,20 +109,25 @@ export const getAllProducts = async (req, res) => {
         price: 1,
         image: { $slice: 1 }, // Return only first image
         sold: 1,
+        category: 1,
+        subCategory: 1,
       });
 
     const totalProducts = await Product.countDocuments(query);
 
+    const totalPages = Math.ceil(totalProducts / limitNumber);
+
     res.json({
-        success: true,
-        message: 'Get all products successful',
-        products,
-        pagination: {
-          currentPage: pageNumber,
-          totalPages: Math.ceil(totalProducts / limitNumber),
-          totalProducts,
-        }
-      });
+      success: true,
+      message: "Get all products successful",
+      products,
+      pagination: {
+        currentPage: pageNumber,
+        totalPages,
+        totalProducts,
+        limit: limitNumber,
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -273,9 +277,7 @@ export const deleteProduct = async (req, res) => {
 
     await product.deleteOne();
 
-    res
-      .status(200)
-      .json({ success: true, message: "Product deleted" });
+    res.status(200).json({ success: true, message: "Product deleted", product });
   } catch (error) {
     console.error(error);
 

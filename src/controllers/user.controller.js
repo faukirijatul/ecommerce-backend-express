@@ -81,6 +81,8 @@ export const login = async (req, res) => {
 
     await createToken(user, res);
 
+    user.password = undefined;
+
     res.status(200).json({
       success: true,
       user,
@@ -91,6 +93,31 @@ export const login = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Login Failed",
+      error: error.message,
+    });
+  }
+};
+
+export const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+      message: "Get user profile successful",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Get user profile Failed",
       error: error.message,
     });
   }

@@ -13,7 +13,8 @@ export const createToken = (user, res) => {
     httpOnly: process.env.NODE_ENV === "production",
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    expires: new Date(Date.now() + 60 * 1000 * 5), // 5 minutes
+    maxAge: 5 * 60 * 1000, // 5 minutes
+    expires: new Date(Date.now() + 5 * 60 * 1000),
     path: "/",
   });
 
@@ -21,7 +22,8 @@ export const createToken = (user, res) => {
     httpOnly: process.env.NODE_ENV === "production",
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    maxAge: 30 * 60 * 24 * 60 * 1000, // 30 days
+    expires: new Date(Date.now() + 30 * 60 * 24 * 60 * 1000),
     path: "/",
   });
 };
