@@ -149,6 +149,7 @@ export const getProductById = async (req, res) => {
     }
 
     const transformedProduct = {
+      _id: product._id,
       name: product.name,
       description: product.description,
       price: product.price,
