@@ -107,7 +107,7 @@ export const getAllProducts = async (req, res) => {
         name: 1,
         description: 1,
         price: 1,
-        image: { $slice: 1 }, // Return only first image
+        image: { $slice: 1 },
         sold: 1,
         category: 1,
         subCategory: 1,

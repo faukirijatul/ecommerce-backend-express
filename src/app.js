@@ -36,11 +36,13 @@ app.get("/", (req, res) => {
 import userRouter from "./routes/user.route.js";
 import productRouter from "./routes/product.route.js";
 import cartRouter from "./routes/cart.route.js";
+import orderRouter from "./routes/order.route.js";
 
 const apiVersion = "/api/v1";
 
 app.use(`${apiVersion}/users`, userRouter);
 app.use(`${apiVersion}/products`, productRouter);
 app.use(`${apiVersion}/cart`, cartRouter);
+app.use(`${apiVersion}/order`, orderRouter);
 
 export default app;
