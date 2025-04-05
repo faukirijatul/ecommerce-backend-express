@@ -1,0 +1,2 @@
+- **Frontend Demo**: [https://tokobaju-nine.vercel.app](https://tokobaju-nine.vercel.app)
+- **Frontend Repository**: [https://github.com/faukirijatul/ecommerce-frontend-react.git](https://github.com/faukirijatul/ecommerce-frontend-react.git)
