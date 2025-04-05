@@ -123,6 +123,88 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
+export const updateUser = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { name, email, password } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const updateData = {};
+
+    if (name) {
+      if (!validator.isLength(name, { min: 1 })) {
+        return res.status(400).json({
+          success: false,
+          message: "Name cannot be empty",
+        });
+      }
+      updateData.name = name;
+    }
+
+    if (email) {
+      if (!validator.isEmail(email)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid email address",
+        });
+      }
+
+      const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already in use",
+        });
+      }
+      updateData.email = email;
+    }
+
+    if (password) {
+      if (!validator.isLength(password, { min: 8 })) {
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 8 characters",
+        });
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No update data provided",
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    res.status(200).json({
+      success: true,
+      user: updatedUser,
+      message: "User updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Update user failed",
+      error: error.message,
+    });
+  }
+};
+
 export const logout = async (req, res) => {
   try {
     await removeToken(res);

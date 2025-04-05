@@ -372,3 +372,169 @@ export const getUserOrders = async (req, res) => {
     });
   }
 };
+
+// get all orders
+export const getAllOrders = async (req, res) => {
+  try {
+    // pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // filter parameters
+    const filter = {};
+
+    if (req.query.status) filter.status = req.query.status;
+    if (req.query.paymentMethod) filter.paymentMethod = req.query.paymentMethod;
+    if (req.query.payment) filter.payment = req.query.payment;
+    if (req.query.userId) filter.user = req.query.userId;
+
+    // sort parameters
+    const sort = {};
+    const sortBy = req.query.sortBy || "createdAt";
+    const sortOrder = req.query.sortOrder || "desc";
+    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+    const orders = await Order.find(filter)
+      .populate({
+        path: "products.product",
+        select: {
+          name: 1,
+          price: 1,
+          image: { $slice: 1 },
+        },
+      })
+      .populate({
+        path: "user",
+        select: "email fullName",
+      })
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+
+    const totalOrders = await Order.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      total: totalOrders,
+      page,
+      pages: Math.ceil(totalOrders / limit),
+      limit,
+      count: orders.length,
+      orders,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve orders",
+      error: error.message,
+    });
+  }
+};
+
+export const getOrderById = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId)
+      .populate({
+        path: "products.product",
+        select: {
+          name: 1,
+          price: 1,
+          image: { $slice: 1 },
+        },
+      })
+      .populate({
+        path: "user",
+        select: "email fullName",
+      });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve order",
+      error: error.message,
+    });
+  }
+};
+
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    // Valid status values
+    const validStatuses = [
+      "Unpaid",
+      "Placed",
+      "Processing",
+      "Shipped",
+      "Delivered",
+      "Cancelled",
+      "Returned",
+    ];
+
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID is required",
+      });
+    }
+
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Status must be one of: ${validStatuses.join(", ")}`,
+      });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // Update status
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    ).populate({
+      path: "products.product",
+      select: {
+        name: 1,
+        price: 1,
+        image: { $slice: 1 },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
+      order: updatedOrder,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update order status",
+      error: error.message,
+    });
+  }
+};
